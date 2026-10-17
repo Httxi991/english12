@@ -1,3 +1,13 @@
+# 1.1.0 — 2026-10-17
+
+- Adapt 25 classroom files into 18 study-first lessons across six topic groups, with 108 explained objective questions and 18 teacher-marked written tasks.
+- Add study/practice gates, quiz history, targeted review, classroom recommendations and non-duplicating XP.
+- Add a working offline student–teacher file exchange with four manual rubric scores, written feedback, validation and marked-answer snapshots.
+- Preserve foundation progress and add classroom/teacher drafts to browser storage and backups.
+- Add source coverage, Arabic guidance and responsive classroom/teacher interfaces.
+- Enable automatic GitHub Pages deployment on main pushes; document public application URLs.
+- Expand automated verification to 27 engine and DOM/event tests.
+
 # Changelog
 
 ## 1.0.0 — 2026-10-17

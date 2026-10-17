@@ -1,3 +1,4 @@
+import {freshSchool,validateSchool,schoolXP} from './school-engine.js';
 import {units,lessons,questions,questionById,lessonById,vocabulary,writingPrompts} from './content.js';
 
 export const STORAGE_KEY='english12.progress.v1';
@@ -29,10 +30,10 @@ export function solution(q){
  return q.pairs.map(([word,meaning])=>`${word} → ${meaning}`).join('; ');
 }
 export const wordCount=text=>(String(text).trim().match(/[\p{L}\p{N}]+(?:['’\-][\p{L}\p{N}]+)*/gu)||[]).length;
-export const freshState=()=>({version:1,theme:'light',arabic:false,completed:[],earned:[],latest:{},attempts:[],sessions:{},drafts:{},writingDone:[],known:[],lastLesson:null,lastActivity:null});
+export const freshState=()=>({version:1,school:freshSchool(),theme:'light',arabic:false,completed:[],earned:[],latest:{},attempts:[],sessions:{},drafts:{},writingDone:[],known:[],lastLesson:null,lastActivity:null});
 export function validateState(input){
  if(!input||input.version!==1||typeof input!=='object') throw new Error('This is not an English12 version 1 backup.');
- const s=freshState();
+ const s=freshState();s.school=validateSchool(input.school);
  s.theme=input.theme==='dark'?'dark':'light'; s.arabic=input.arabic===true;
  const pick=(arr,valid)=>Array.isArray(arr)?[...new Set(arr.filter(x=>valid.includes(x)))]:[];
  s.completed=pick(input.completed,lessons.map(l=>l.id));
@@ -71,7 +72,7 @@ export function loadState(storage){
  catch{return {state:freshState(),warning:'Your saved progress could not be read. This session is starting fresh. You can restore an English12 backup in Settings.'};}
 }
 export function saveState(storage,state){try{storage.setItem(STORAGE_KEY,JSON.stringify(state));return true;}catch{return false;}}
-export const xp=s=>s.earned.length*10+s.completed.length*20+s.writingDone.length*30;
+export const xp=s=>s.earned.length*10+s.completed.length*20+s.writingDone.length*30+schoolXP(s.school);
 export const progress=s=>Math.round(s.completed.length/lessons.length*100);
 export function performance(s,unit){const entries=questions.filter(q=>q.unit===unit&&s.latest[q.id]).map(q=>s.latest[q.id]);return {total:entries.length,correct:entries.filter(a=>a.correct).length,percent:entries.length?Math.round(entries.filter(a=>a.correct).length/entries.length*100):null};}
 export function weakQuestions(s,unit){return questions.filter(q=>(!unit||q.unit===unit)&&s.latest[q.id]&&!s.latest[q.id].correct).map(q=>q.id);}

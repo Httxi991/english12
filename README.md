@@ -1,34 +1,36 @@
 # English12
 
-A complete, dependency-free English learning app for Grade 12. Original practice content, optional Arabic explanations, and progress that stays on the learner’s device.
+Grade 12 English learning: study a short lesson, practise, take a quiz, and develop a written response for a teacher to mark. Optional Arabic explanations and local progress storage are built in.
 
-- Live application (owner-private): https://english12-learning.jauntydaisy1.chatgpt.site
-- Source repository (private): https://github.com/Httxi991/english12
+- **Live app:** https://httxi991.github.io/english12/
+- **Classroom lessons:** https://httxi991.github.io/english12/#/school
+- **Teacher marking desk:** https://httxi991.github.io/english12/#/teacher
+- **Public source:** https://github.com/Httxi991/english12
+- Additional Sites publication: https://english12-learning.jauntydaisy1.chatgpt.site
 
-## What is included
+## Included content
 
-- Four units: vocabulary, grammar, reading and writing.
-- Eight short lessons and 48 distinct, explained questions: 30 multiple choice, 9 fill-in-the-gap, 3 matching and 6 sentence-building activities.
-- Two original reading passages; each appears beside its questions.
-- Two writing prompts, model answers, word counts and transparent self-review criteria.
-- A searchable bank of 24 vocabulary cards with meanings, Arabic translations and usage examples.
-- Unit quizzes, complete answer review, unlimited retries and focused review of mistakes.
-- Local persistence of drafts, partial activities, checked answers, results and preferences.
-- A progress dashboard, rule-based recommendations, earned XP and five achievement badges.
-- Light/dark themes, responsive layouts, keyboard-operable interactions, reduced-motion support and RTL Arabic explanations.
-- Export/restore of progress as JSON, with validation and confirmation before replacement.
+### Classroom course
 
-The app does not use AI grading, analytics, accounts or a database. It contains no secrets and makes no application-level network calls after loading its static files. Hosting may require the owner to sign in to access a private preview; that is separate from the learner app.
+The owner's 25 supplied classroom files are mapped to 18 lessons across six groups: Beowulf, Half a Day, language and style, Macbeth and tragedy, IELTS introduction, and activity-club projects. There are 108 newly written objective questions (two practice and four quiz questions per lesson), plus 18 teacher-marked written tasks. Each lesson has English explanations, examples and optional Arabic help.
+
+The original files are adapted into the learning experience; raw textbook PDFs, slide decks and worksheets are not redistributed. The source-coverage page lists every filename and its associated lessons. Repeated slides are combined. Literary interpretations are assessed through evidence rather than forced into one multiple-choice answer. The large Beowulf textbook file is used for its Beowulf section; externally linked articles that were not supplied are not reproduced. No official curriculum endorsement is claimed.
+
+### Foundation course
+
+The existing four units remain available: vocabulary, grammar, reading and writing. They contain eight lessons and 48 explained questions using multiple choice, gap filling, matching and sentence ordering. There are also two original reading passages, two writing prompts with model answers and self-review, and 24 vocabulary cards.
+
+Across both courses: saved progress, results, retries, mistake review, XP, responsive layouts, light/dark themes, keyboard controls, RTL Arabic explanations and reduced-motion support. Foundation achievement badges remain tied to actual foundation activity.
 
 ## Run locally
 
-Requirements: Python 3 for the static server. Node.js 20+ for the optional automated checks. The running application has no package dependencies or build step.
+No build step or runtime dependencies. Use an HTTP server because ES modules do not run reliably from `file://`.
 
 ```sh
 python3 -m http.server 8000 --directory dist
 ```
 
-Open `http://localhost:8000/` in a modern browser. Do not open `index.html` directly with `file://`, because ES modules need an HTTP server.
+Open `http://localhost:8000/`. For automated checks, use Node.js 20+:
 
 ```sh
 npm ci
@@ -36,107 +38,73 @@ npm run check
 npm test
 ```
 
-`npm ci` installs only the development dependency LinkeDOM and its dependencies for DOM/event tests. It is not loaded by the deployed app.
+LinkeDOM is a development-only dependency for DOM/event tests. It is never loaded by the deployed app.
+
+## Study, practice and quiz rules
+
+- Confirm each classroom study part in order to unlock two guided questions. Complete them to unlock the four-question quiz. Direct links respect these gates.
+- Instant feedback explains every objective answer. Completion means finishing all questions, not necessarily answering them all correctly.
+- A completed full quiz unlocks that lesson's written response. Its manual grade is separate from the objective quiz score.
+- Full retries preserve previous results. Mistake review contains only missed questions. The most recent 60 classroom quiz/review attempts are retained.
+- Each unique correctly answered classroom question earns 10 XP once; each completed classroom lesson quiz earns 20 XP once. Retries do not duplicate XP. Written teacher scores do not automatically award XP.
+- Classroom recommendation priority: a latest full quiz below 70%, an unfinished last-opened lesson, then the next unfinished lesson. It uses full quiz results, not a partial review score.
+- Foundation progress and its original scoring rules remain separate; total XP combines both courses. Existing version-1 progress migrates without dropping original drafts or results.
+
+## Teacher marking: a working file exchange
+
+There is no backend, login or automatic submission service. Teacher mode is a local workspace, not an authentication or security boundary.
+
+1. The student completes a classroom quiz and writes its open-ended response.
+2. In **My teacher submissions**, the student enters a name or classroom alias and downloads a JSON answer file containing all eligible written responses.
+3. The student gives that file to the teacher through an agreed channel. The app does not send it.
+4. The teacher opens **Teacher marking desk**, imports the file and grades each response using four criteria: understanding, evidence, reasoning/organisation, and language. Each receives 0–2 points, for a total of 8. A feedback comment is required.
+5. The teacher downloads the marked file and returns it to the student.
+6. The student imports it in **My teacher submissions**. The app checks the submission ID, student details, exact answer snapshots, score ranges and comments before saving the returned grades.
+
+Both sides' drafts are saved locally. Five recent student submission snapshots are kept for matching returned files. If moving devices, restore the student's progress backup before importing returned feedback. Editing an answer after marking retains the original marked answer and labels the feedback as belonging to an earlier draft. Export the revision to request new marking. Clear the teacher workspace after finishing on a shared computer.
+
+The eight-point rubric is classroom practice feedback, not an official school grade or IELTS band. There is no AI writing, speaking or pronunciation assessment, and no listening recording in the IELTS introduction. Teacher names in returned files are not cryptographically verified.
 
 ## Project structure
 
-| File | Role |
+| File | Purpose |
 | --- | --- |
-| `dist/index.html` | Accessible application entry point |
-| `dist/app.js` | Route rendering, UI components and event handlers |
-| `dist/content.js` | All units, lessons, questions, passages, words and writing prompts |
-| `dist/engine.js` | Grading, progression, recommendations and persistence |
-| `dist/style.css` | Responsive design and light/dark themes |
-| `tests/learning.test.mjs` | Content and learning-flow regression tests |
-| `tests/ui.test.mjs` | UI render/event smoke tests using LinkeDOM |
-| `scripts/export-source.mjs` | Creates a clean source archive without Git metadata or credentials |
-| `.github/workflows/pages.yml` | Optional GitHub Pages deployment workflow |
-| `.github/workflows/ci.yml` | Automated checks on pushes and pull requests |
-| `.openai/hosting.json` | Existing Sites identity and static hosting configuration |
+| `dist/index.html`, `dist/style.css` | Entry point and responsive theme styles |
+| `dist/app.js` | Shared shell, routing and foundation UI |
+| `dist/content.js`, `dist/engine.js` | Foundation content, grading and persisted state |
+| `dist/school-content.js` | Classroom groups, explanations, questions, writing tasks and rubric |
+| `dist/school-sources.js` | The 25-source filename manifest |
+| `dist/school-engine.js` | Gating, scoring, validation and teacher exchange protocol |
+| `dist/school-ui.js` | Classroom and teacher interfaces |
+| `tests/learning.test.mjs` | Foundation content and engine checks |
+| `tests/school.test.mjs` | Classroom, migration and teacher exchange checks |
+| `tests/ui.test.mjs` | DOM/event journeys, including student–teacher handoff |
+| `.github/workflows/ci.yml` | Push/PR checks |
+| `.github/workflows/pages.yml` | Pages deployment on main pushes or manual dispatch |
+| `.openai/hosting.json` | Existing Sites identity and static directory |
 
-`dist/` is the actual editable, deployable source; there is no compiled bundle or build step. Keep content independent of UI code. All assets are local. Hash routes such as `/#/lesson/r1` support direct navigation and refresh on static hosting and repository subpaths.
+`dist/` is editable source, not a generated bundle. All runtime assets are local. Hash routes work on repository subpaths and direct refreshes without server rewrites.
 
-## Add or update content
+## Add content
 
-1. Add a unit to `units` in `dist/content.js` with a unique ID, title, skill, colour, lesson IDs and quiz question IDs.
-2. Add lessons to `lessons`. Each includes `intro`, `points`, `example`, optional `arabic`/`passage`/`writing`, and the `practice` question IDs.
-3. Add questions to `questions`, using a globally unique ID and one of the four types below. Include an explanation that teaches the concept, not just the answer.
-4. Add optional passages, vocabulary cards or writing prompts to their exported collections. Provide only original or appropriately licensed content. Preserve existing IDs to retain learners’ progress.
-5. Update displayed inventory counts and the content contract tests when expanding the curriculum; run the checks before publishing.
+For classroom content, add a `lesson(...)` entry in `school-content.js` with a stable ID, existing group ID, goal, numeric source references, study sections, six questions, a written task and assessment guidance. Each section has a title, explanation, example and Arabic help. The first two questions become practice; the remaining four become the quiz. `mc(...)` receives the correct answer first and three distinct distractors; the finalisation loop rotates options deterministically and assigns IDs. `fill(...)` accepts a string or an array of valid answers. Preserve IDs and question order for existing learners. Add source filenames to `school-sources.js` when needed.
 
-Question shapes:
+For foundation content, extend the exported collections in `content.js`: units, lessons, questions, passages, vocabulary or writing prompts. Questions support `mc`, `fill`, `match` and `order`; follow the existing examples and include an explanation. Reading questions reference a passage ID. Matching and ordering use complete, unambiguous answers. Fill answers ignore case, repeated spaces and trailing sentence punctuation.
 
-```js
-// Multiple choice: answer is a zero-based option index.
-{ id: 'new-mc', unit: 'grammar', type: 'mc', prompt: '...',
-  options: ['A', 'B', 'C', 'D'], answer: 1, explanation: '...' }
-
-// Fill: list all genuinely acceptable exact answers.
-{ id: 'new-fill', unit: 'grammar', type: 'fill', prompt: '...',
-  answers: ['written'], explanation: '...' }
-
-// Matching: each pair is [term, meaning]. Each activity earns one point
-// only when all pairs are correct. The UI reorders the meanings.
-{ id: 'new-match', unit: 'vocabulary', type: 'match', prompt: '...',
-  pairs: [['word', 'meaning'], ['other word', 'other meaning']], explanation: '...' }
-
-// Ordering: tokens are the scrambled choices. answer is the full correct sequence.
-{ id: 'new-order', unit: 'grammar', type: 'order', prompt: 'Start with “We”.',
-  tokens: ['learn.', 'We'], answer: ['We', 'learn.'], explanation: '...' }
-```
-
-Reading questions use a `passage` ID. Fill answers ignore case, surrounding/repeated spaces and trailing `. ! ?`. Other spelling changes are not silently accepted. Make prompts constrain any sentence ordering that would otherwise have multiple valid answers.
-
-The current material is independently authored general Grade 12 practice, not a claim of alignment with a UAE or other official curriculum. When a school syllabus is supplied, map its objectives to units and document that source before claiming alignment.
-
-## Scoring and recommendations
-
-- One score point per question. Compound matching questions are all-or-nothing, disclosed in the interface.
-- 10 XP per unique question answered correctly, once; 20 XP per lesson practice completed, once; 30 XP per writing self-review completed, once.
-- Finishing all three lesson practice questions completes the lesson even when some answers are incorrect. Accuracy and quizzes remain separate.
-- Retry creates a separate attempt and does not erase previous results. Latest answers determine current skill accuracy. The most recent 80 attempts are retained.
-- Recommendation priority: a skill with at least three answers and below 70% accuracy; next unfinished lesson; first unattempted unit quiz; unfinished writing task; vocabulary refresh.
-- Writing completion requires the prompt’s word range and all four review areas checked. This is self-reported revision, not a judgement of writing quality or an examination grade. Model answers are examples, not the only acceptable responses.
+When changing an existing question's meaning or answer key, plan a course/state migration rather than silently reusing its ID. The teacher protocol uses `COURSE_VERSION` in `school-engine.js`; preserve compatibility with outstanding submission files. Update inventory labels and content tests after additions. Run all checks before publishing.
 
 ## Persistence and privacy
 
-State is stored under `english12.progress.v1` in local storage. It survives ordinary refresh and browser reopening. It is specific to the origin and browser, does not sync, and may be cleared by private browsing or deletion of site data. Changing hosts creates a different storage origin. Export and restore progress to transfer it.
+State is stored under `english12.progress.v1` in local storage. It survives ordinary browser reopening but is specific to the browser and origin. Private browsing, clearing site data or switching hosts can remove or separate it. Use Settings to export/restore a complete progress backup (up to 6 MB). Student/teacher exchange files are limited to 2 MB.
 
-Storage failures produce a visible warning. Malformed saved state is rejected safely. The app uses escaped text for user content and validates imported progress. No credentials, API keys or student drafts belong in the repository. Local-storage state is a learning aid, not a secure examination record.
+There are no application accounts, analytics, database calls or embedded secrets. User content is escaped and imported data is validated. Local storage and editable JSON files are learning aids, not tamper-proof exam records. Avoid sharing personal details beyond what the teacher needs. Student answers and names are never committed to this repository.
 
-## Deploy
+## Deployment
 
-### Existing Sites publication
+The public repository is already configured for GitHub Pages using GitHub Actions. A push to `main` runs checks and deploys `dist/`; **Actions → Deploy English12 to GitHub Pages → Run workflow** also works. Pages settings should use **GitHub Actions** as the source. The separate CI workflow also runs on pull requests.
 
-The project is configured as a static Site serving `dist/`. Keep the existing opaque `project_id` when updating that same Site. Use the Sites source/version/publish workflow; the repository contains no write credential. New Sites publications are owner-private until their sharing is explicitly changed.
+The existing Sites publication serves the same `dist/` directory. Preserve `.openai/hosting.json` and its project ID when updating it, and use the Sites source/version/deploy workflow. Preserve its public audience. No environment variables, server functions, database or API key are required.
 
-### GitHub repository and GitHub Pages
+## Verification and content rights
 
-The private source repository is `Httxi991/english12`. The app is already published through Sites; enabling GitHub Pages is optional. Use the existing repository for this project rather than creating a duplicate.
-
-```sh
-git clone https://github.com/Httxi991/english12.git
-cd english12
-python3 -m http.server 8000 --directory dist
-```
-
-For a separate copy under a different account, authenticate GitHub CLI on your own computer and run these commands inside the extracted source. They create a new private repository; choose public only if you intend to share the source.
-
-```sh
-git init -b main
-git add .
-git commit -m "feat: launch English12 learning platform"
-gh repo create english12 --private --source=. --remote=github --push
-```
-
-If using an existing checkout already synced with Sites, skip `git init` and the initial commit; keep its existing remote and add GitHub as a separate remote. Never overwrite another project’s repository.
-
-For Pages, the included optional workflow uploads `dist/` and deploys it when run manually from Actions. First select GitHub Actions as the Pages source in repository settings. It is manual so it will not fail on every source push while Pages is disabled. A separate CI workflow checks the code on pushes and pull requests. Pages availability depends on repository visibility and account plan. A free public repository is the usual no-cost Pages path; source visibility should be a deliberate choice. The app also works on any static host with `dist/` as its document root. No environment variables or server functions are required.
-
-## Validation and limitations
-
-See `VALIDATION.md` for what was tested and what requires a real browser check. The current execution environment did not provide the Sites-supported browser-preview capability, so no claim is made of completed visual/mobile browser QA. The responsive styles are implemented for desktop, tablet and phone; perform the documented visual check on the deployed link.
-
-## License and content
-
-Original English12 source and learning content prepared for the project owner. No third-party teaching passages, stock images or external font dependencies are included. A public-source licence has not been selected; choose one before inviting public reuse.
+See `VALIDATION.md` for executed checks and the browser-verification boundary. Source and explanations were prepared for the project owner. Classroom materials are adapted from the owner's supplied files; original binaries and full third-party passages are not included. A public reuse licence has not been selected.
