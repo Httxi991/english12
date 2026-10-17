@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {units,lessons,questions,questionById,passages,vocabulary,writingPrompts} from '../dist/content.js';
-import {freshState,grade,completeAnswer,checkAnswer,startSession,finishSession,scoreSession,saveState,loadState,validateState,xp,progress,weakQuestions,performance,recommend,wordCount,badges} from '../dist/engine.js';
+import {units,lessons,questions,questionById,passages,vocabulary,writingPrompts} from '../web/content.js';
+import {freshState,grade,completeAnswer,checkAnswer,startSession,finishSession,scoreSession,saveState,loadState,validateState,xp,progress,weakQuestions,performance,recommend,wordCount,badges} from '../web/engine.js';
 
 const right=q=>q.type==='mc'?q.answer:q.type==='fill'?q.answers[0]:q.type==='match'?q.pairs.map((_,i)=>i):(()=>{const used=new Set();return q.answer.map(t=>{const i=q.tokens.findIndex((x,i)=>x===t&&!used.has(i));used.add(i);return i;});})();
 const wrong=q=>q.type==='mc'?(q.answer+1)%q.options.length:q.type==='fill'?'not-the-answer':q.type==='match'?q.pairs.map((_,i)=>(i+1)%q.pairs.length):[...q.tokens.keys()].reverse();

@@ -27,7 +27,7 @@ jobs:
         run: node --test tests/*.test.mjs
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: web
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

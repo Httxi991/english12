@@ -1,110 +1,109 @@
 # English12
 
-Grade 12 English learning: study a short lesson, practise, take a quiz, and develop a written response for a teacher to mark. Optional Arabic explanations and local progress storage are built in.
+A connected Grade 12 English classroom: study, practise, take a quiz, and send a written response directly to the teacher. Student accounts ask for a name only; the app generates a private login code. No age, email address, phone number or other profile details are requested.
 
-- **Live app:** https://httxi991.github.io/english12/
-- **Classroom lessons:** https://httxi991.github.io/english12/#/school
-- **Teacher marking desk:** https://httxi991.github.io/english12/#/teacher
+- **Student app:** https://httxi991.github.io/english12/
+- **Teacher sign-in:** https://httxi991.github.io/english12/#/teacher
+- **Full-stack host / API:** https://english12-learning.jauntydaisy1.chatgpt.site
 - **Public source:** https://github.com/Httxi991/english12
-- Additional Sites publication: https://english12-learning.jauntydaisy1.chatgpt.site
 
-## Included content
+## Accounts and saved work
 
-### Classroom course
+Create a student account by entering a name. Save the generated login card/code, then sign in on any device with the same name and code. Duplicate names create separate accounts and codes. The teacher's account is provisioned separately; students cannot choose a teacher role.
 
-The owner's 25 supplied classroom files are mapped to 18 lessons across six groups: Beowulf, Half a Day, language and style, Macbeth and tragedy, IELTS introduction, and activity-club projects. There are 108 newly written objective questions (two practice and four quiz questions per lesson), plus 18 teacher-marked written tasks. Each lesson has English explanations, examples and optional Arabic help.
+Progress, quiz results and writing drafts sync to Cloudflare D1 through authenticated server endpoints. A browser copy protects unsynced edits while offline. The save indicator distinguishes local pending work from confirmed online storage. Sign-out waits for pending student changes to save. Concurrent device updates use revisions: a conflicting save pauses and asks which version to keep, with backup downloads, instead of silently replacing either draft.
 
-The original files are adapted into the learning experience; raw textbook PDFs, slide decks and worksheets are not redistributed. The source-coverage page lists every filename and its associated lessons. Repeated slides are combined. Literary interpretations are assessed through evidence rather than forced into one multiple-choice answer. The large Beowulf textbook file is used for its Beowulf section; externally linked articles that were not supplied are not reproduced. No official curriculum endorsement is claimed.
+When upgrading from the original local-only app on GitHub Pages, the app preserves the old local state and offers **Save my previous progress** after account creation. Import is explicit so a shared computer's old work is not silently assigned to a different student. Use the same app URL/browser for that migration, or restore a progress backup in Settings. After migration, online work is shared between the two hostnames through the same account service.
 
-### Foundation course
+## Teacher workflow
 
-The existing four units remain available: vocabulary, grammar, reading and writing. They contain eight lessons and 48 explained questions using multiple choice, gap filling, matching and sentence ordering. There are also two original reading passages, two writing prompts with model answers and self-review, and 24 vocabulary cards.
+The teacher uses a separate account and temporary password delivered privately to the project owner. The first sign-in requires a new password of at least 16 characters. There is no public teacher registration form.
 
-Across both courses: saved progress, results, retries, mistake review, XP, responsive layouts, light/dark themes, keyboard controls, RTL Arabic explanations and reduced-motion support. Foundation achievement badges remain tied to actual foundation activity.
+- Registered students appear automatically in the roster, refreshed every 10 seconds while the roster is visible.
+- Open a student to see saved lesson completion, quiz results and submitted written responses.
+- Grade each written response using four criteria, each 0–2, and a feedback comment. Publish it directly to the student's account.
+- Students receive grades and comments in **My submissions**, with the exact submitted answer. Changes to a draft do not change the answer already marked.
+- A teacher can issue a replacement student login code. This revokes the old code and sessions while preserving learning records.
+- Teacher marking drafts are retained locally until **Publish feedback** is pressed; published grades are stored centrally. Conflicting grade edits are rejected until refreshed.
 
-## Run locally
+No file exchange is required in the connected interface. The old offline exchange engine is retained for version-1 compatibility and regression tests, but the public teacher routes use server-enforced account permissions.
 
-No build step or runtime dependencies. Use an HTTP server because ES modules do not run reliably from `file://`.
+## Learning content
 
-```sh
-python3 -m http.server 8000 --directory dist
-```
+The owner's 25 classroom files are adapted into 18 lessons across Beowulf, Half a Day, language/style, Macbeth/tragedy, IELTS introduction and activity-club projects. Each lesson contains explanations, examples, optional Arabic guidance, two practice questions, four quiz questions and one teacher-marked response: **108 objective questions and 18 manual tasks** in total.
 
-Open `http://localhost:8000/`. For automated checks, use Node.js 20+:
+The original foundation course remains: four units, eight lessons, 48 questions, two original reading passages, two writing prompts with models, and 24 vocabulary cards. Light/dark themes, keyboard controls, responsive layouts, RTL Arabic guidance, retries, mistake review, XP and foundation achievement badges remain available.
+
+Study parts unlock practice; completing practice unlocks the quiz; completing the quiz unlocks the written response. Objective answers receive instant explanations. Each unique correct question earns 10 XP once, and a completed classroom quiz earns 20 XP once. Teacher grades are separate and do not award automatic XP. Recommendations prioritise a latest full quiz below 70%, then unfinished work. Practice scores are learning records, not tamper-proof examinations.
+
+Raw supplied PDFs, slide decks and worksheets are not redistributed. The coverage page maps all 25 filenames to the adapted lessons. Repeated slides are combined; open interpretations remain teacher-assessed. No official curriculum endorsement or IELTS band prediction is claimed.
+
+## Architecture
+
+The browser runs dependency-free ES modules from `web/`. GitHub Pages serves these files, and the Sites Vinext/Cloudflare Worker serves the same UI plus `/api/v1/*`. GitHub Pages itself does not run server code or store student records. The browser calls the full-stack host over HTTPS with an opaque account session token.
+
+| Path | Purpose |
+| --- | --- |
+| `web/app.js`, `web/style.css` | Shared learning shell and responsive design |
+| `web/accounts.js` | Registration/login, sync, roster and direct marking UI |
+| `web/content.js`, `web/engine.js` | Foundation content and learning rules |
+| `web/school-*.js` | Classroom content, source manifest and learning UI/rules |
+| `server/api.mjs`, `server/security.mjs` | Authorised account, progress and marking endpoints |
+| `app/api/v1/[[...path]]/route.ts` | Vinext API routing to the account service |
+| `app/route.ts` | Existing learning HTML at the root URL |
+| `db/schema.ts`, `drizzle/` | D1 schema and immutable generated migrations |
+| `scripts/prepare-web.mjs` | Copies browser assets into framework public output |
+| `tests/` | Learning, DOM/event, account service and sync regression checks |
+| `.openai/hosting.json` | Existing Sites project and `DB` binding |
+| `.github/workflows/` | CI and Pages frontend publication |
+
+`web/` is editable source. `public/` and `dist/` are generated and ignored. The Sites starter's platform auth integration is retained. The requested name-only classroom accounts operate at the application layer on the existing public Site; they do not replace dispatch-owned ChatGPT routes or change the Site audience.
+
+## Run and verify locally
+
+Requires Node.js **22.13+** (including `node:sqlite` for service tests).
 
 ```sh
 npm ci
 npm run check
 npm test
+npm run build
+npm run dev
 ```
 
-LinkeDOM is a development-only dependency for DOM/event tests. It is never loaded by the deployed app.
+The standalone portable development server prints its URL. In the managed Sites environment, use the supported Sites preview workflow instead. Apply pending D1 migrations to the local database before exercising accounts through a local server; see the starter migration command below. Local preview databases and production databases are separate.
 
-## Study, practice and quiz rules
+```sh
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js d1 execute DB --local --config dist/server/wrangler.json --persist-to .wrangler/state --file drizzle/0000_faithful_living_lightning.sql
+```
 
-- Confirm each classroom study part in order to unlock two guided questions. Complete them to unlock the four-question quiz. Direct links respect these gates.
-- Instant feedback explains every objective answer. Completion means finishing all questions, not necessarily answering them all correctly.
-- A completed full quiz unlocks that lesson's written response. Its manual grade is separate from the objective quiz score.
-- Full retries preserve previous results. Mistake review contains only missed questions. The most recent 60 classroom quiz/review attempts are retained.
-- Each unique correctly answered classroom question earns 10 XP once; each completed classroom lesson quiz earns 20 XP once. Retries do not duplicate XP. Written teacher scores do not automatically award XP.
-- Classroom recommendation priority: a latest full quiz below 70%, an unfinished last-opened lesson, then the next unfinished lesson. It uses full quiz results, not a partial review score.
-- Foundation progress and its original scoring rules remain separate; total XP combines both courses. Existing version-1 progress migrates without dropping original drafts or results.
+For local server testing, supply untracked local Worker environment values using the supported runtime configuration. The unit and DOM tests use an isolated in-memory SQLite database and test-only credentials; they need no production secrets.
 
-## Teacher marking: a working file exchange
+## Deployment and runtime configuration
 
-There is no backend, login or automatic submission service. Teacher mode is a local workspace, not an authentication or security boundary.
+The production Sites manifest preserves the existing project ID, declares `d1: "DB"`, and has no `static` field. Sites provisions D1 and applies the committed schema migrations before deploying the Worker. Build and publish through the Sites source/version/deployment workflow. Do not modify already-applied migration files; generate an additional migration for later schema changes.
 
-1. The student completes a classroom quiz and writes its open-ended response.
-2. In **My teacher submissions**, the student enters a name or classroom alias and downloads a JSON answer file containing all eligible written responses.
-3. The student gives that file to the teacher through an agreed channel. The app does not send it.
-4. The teacher opens **Teacher marking desk**, imports the file and grades each response using four criteria: understanding, evidence, reasoning/organisation, and language. Each receives 0–2 points, for a total of 8. A feedback comment is required.
-5. The teacher downloads the marked file and returns it to the student.
-6. The student imports it in **My teacher submissions**. The app checks the submission ID, student details, exact answer snapshots, score ranges and comments before saving the returned grades.
+Set these **secret** runtime keys through Sites settings/tools; never put values in source, the browser bundle, GitHub secrets output or the hosting manifest:
 
-Both sides' drafts are saved locally. Five recent student submission snapshots are kept for matching returned files. If moving devices, restore the student's progress backup before importing returned feedback. Editing an answer after marking retains the original marked answer and labels the feedback as belonging to an earlier draft. Export the revision to request new marking. Clear the teacher workspace after finishing on a shared computer.
+- `TEACHER_INITIAL_HASH`: PBKDF2-SHA-256 hash in the format produced by `server/security.mjs`. The initial teacher password is randomly generated and delivered privately. The teacher account is initialised on its first successful authenticated sign-in and must then change that password. After initialisation, changing this environment value alone does not reset the stored teacher password.
+- `ACCOUNT_RATE_SECRET`: random secret used to hash short-lived rate-limit buckets. Raw IP addresses are not stored by application code.
 
-The eight-point rubric is classroom practice feedback, not an official school grade or IELTS band. There is no AI writing, speaking or pronunciation assessment, and no listening recording in the IELTS introduction. Teacher names in returned files are not cryptographically verified.
+The current production values are already configured. No student setup is required beyond their name and saving their generated code.
 
-## Project structure
+GitHub Pages publishes **`web/`** on pushes to main or manual workflow dispatch. It uses the existing full-stack host for API requests. Backend code changes also require a Sites deployment; a Pages push alone does not deploy the Worker. If moving to another backend domain, update the public API origin in `web/accounts.js`, the exact CORS allowlist in `server/api.mjs`, and the CSP in `web/index.html` together.
 
-| File | Purpose |
-| --- | --- |
-| `dist/index.html`, `dist/style.css` | Entry point and responsive theme styles |
-| `dist/app.js` | Shared shell, routing and foundation UI |
-| `dist/content.js`, `dist/engine.js` | Foundation content, grading and persisted state |
-| `dist/school-content.js` | Classroom groups, explanations, questions, writing tasks and rubric |
-| `dist/school-sources.js` | The 25-source filename manifest |
-| `dist/school-engine.js` | Gating, scoring, validation and teacher exchange protocol |
-| `dist/school-ui.js` | Classroom and teacher interfaces |
-| `tests/learning.test.mjs` | Foundation content and engine checks |
-| `tests/school.test.mjs` | Classroom, migration and teacher exchange checks |
-| `tests/ui.test.mjs` | DOM/event journeys, including student–teacher handoff |
-| `.github/workflows/ci.yml` | Push/PR checks |
-| `.github/workflows/pages.yml` | Pages deployment on main pushes or manual dispatch |
-| `.openai/hosting.json` | Existing Sites identity and static directory |
+## Security and data scope
 
-`dist/` is editable source, not a generated bundle. All runtime assets are local. Hash routes work on repository subpaths and direct refreshes without server rewrites.
+The server determines the account and role from a validated session, never from a client-supplied student ID or role. Students can access only their own saved work and results. Teacher endpoints require the teacher role. Progress uploads cannot create teacher feedback. Scores and comments are validated server-side, and marked answer snapshots are preserved.
 
-## Add content
+Generated student codes have 96 bits of random secret material; server credentials use salted PBKDF2-SHA-256. Session tokens have 256 random bits, expire after 30 days and are stored as hashes server-side. Browser tokens are stored on the device to permit cross-origin GitHub Pages access; protect shared devices and sign out after use. The UI escapes user content, uses a content security policy and permits CORS only for the two known origins. Authentication/registration have rate limits. No passwords, codes, tokens or student records belong in Git commits or logs.
 
-For classroom content, add a `lesson(...)` entry in `school-content.js` with a stable ID, existing group ID, goal, numeric source references, study sections, six questions, a written task and assessment guidance. Each section has a title, explanation, example and Arabic help. The first two questions become practice; the remaining four become the quiz. `mc(...)` receives the correct answer first and three distinct distractors; the finalisation loop rotates options deterministically and assigns IDs. `fill(...)` accepts a string or an array of valid answers. Preserve IDs and question order for existing learners. Add source filenames to `school-sources.js` when needed.
+Profile information is limited to a name and generated account identifier. Functional records also include learning progress, submitted answers, teacher feedback and save timestamps. The app has no advertising analytics or AI grading. Hosting services may maintain their own operational logs. The teacher sees the entire classroom roster; this release is a single-classroom/single-teacher system, not a multi-school tenant service.
 
-For foundation content, extend the exported collections in `content.js`: units, lessons, questions, passages, vocabulary or writing prompts. Questions support `mc`, `fill`, `match` and `order`; follow the existing examples and include an explanation. Reading questions reference a passage ID. Matching and ordering use complete, unambiguous answers. Fill answers ignore case, repeated spaces and trailing sentence punctuation.
+## Content changes
 
-When changing an existing question's meaning or answer key, plan a course/state migration rather than silently reusing its ID. The teacher protocol uses `COURSE_VERSION` in `school-engine.js`; preserve compatibility with outstanding submission files. Update inventory labels and content tests after additions. Run all checks before publishing.
+Add classroom lessons in `web/school-content.js` and source filenames in `web/school-sources.js`. Keep existing lesson/question IDs stable. A lesson has English/Arabic study sections, six questions, a written task and assessment guidance. The first two questions become practice, and the remaining four become the quiz. Multiple-choice helpers rotate answers deterministically. Foundation content lives in `web/content.js`.
 
-## Persistence and privacy
+Changes to answer keys, IDs, course version or grading criteria require a deliberate progress/submission migration. Keep `COURSE_VERSION` compatible with existing submitted work. Update inventory labels and content tests before publication. Original source and adapted content were prepared for the project owner; no public reuse licence has been selected.
 
-State is stored under `english12.progress.v1` in local storage. It survives ordinary browser reopening but is specific to the browser and origin. Private browsing, clearing site data or switching hosts can remove or separate it. Use Settings to export/restore a complete progress backup (up to 6 MB). Student/teacher exchange files are limited to 2 MB.
-
-There are no application accounts, analytics, database calls or embedded secrets. User content is escaped and imported data is validated. Local storage and editable JSON files are learning aids, not tamper-proof exam records. Avoid sharing personal details beyond what the teacher needs. Student answers and names are never committed to this repository.
-
-## Deployment
-
-The public repository is already configured for GitHub Pages using GitHub Actions. A push to `main` runs checks and deploys `dist/`; **Actions → Deploy English12 to GitHub Pages → Run workflow** also works. Pages settings should use **GitHub Actions** as the source. The separate CI workflow also runs on pull requests.
-
-The existing Sites publication serves the same `dist/` directory. Preserve `.openai/hosting.json` and its project ID when updating it, and use the Sites source/version/deploy workflow. Preserve its public audience. No environment variables, server functions, database or API key are required.
-
-## Verification and content rights
-
-See `VALIDATION.md` for executed checks and the browser-verification boundary. Source and explanations were prepared for the project owner. Classroom materials are adapted from the owner's supplied files; original binaries and full third-party passages are not included. A public reuse licence has not been selected.
+See `QUICKSTART-AR.md` for usage and `VALIDATION.md` for checks and verification limits.

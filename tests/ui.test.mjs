@@ -3,17 +3,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {parseHTML} from 'linkedom';
 import {readFileSync} from 'node:fs';
-import {lessons,units,questionById,writingPrompts} from '../dist/content.js';
-import {STORAGE_KEY,wordCount} from '../dist/engine.js';
+import {lessons,units,questionById,writingPrompts} from '../web/content.js';
+import {STORAGE_KEY,wordCount} from '../web/engine.js';
 
 let instance=0;
 async function boot(raw=null,hash='#/'){
- const {document,Event}=parseHTML(readFileSync(new URL('../dist/index.html',import.meta.url),'utf8'));
+ const {document,Event}=parseHTML(readFileSync(new URL('../web/index.html',import.meta.url),'utf8'));
  const handlers={};const storage={raw,getItem(){return this.raw;},setItem(k,v){this.raw=v;}};
  globalThis.document=document;
  globalThis.location={hash};
  globalThis.window={localStorage:storage,scrollTo(){},addEventListener(name,fn){handlers[name]=fn;},confirm(){return true;}};
- await import(`../dist/app.js?test=${++instance}`);
+ await import(`../web/app.js?test=${++instance}`);
  const go=hash=>{globalThis.location.hash=hash;handlers.hashchange();};
  const click=selector=>{const el=document.querySelector(selector);assert.ok(el,`Missing ${selector}`);assert.ok(!el.disabled,`Disabled ${selector}`);el.dispatchEvent(new Event('click',{bubbles:true}));};
  const change=(el,type='change')=>el.dispatchEvent(new Event(type,{bubbles:true}));
@@ -64,7 +64,7 @@ test('vocabulary search, flip and known filters are functional',async()=>{
 });
 
 test('classroom UI gates quiz, teaches, quizzes, saves writing and resumes without dropping foundation work',async()=>{
- const {schoolLessons}=await import('../dist/school-content.js');const l=schoolLessons[0];const h=await boot();h.go(`#/school/${l.id}/quiz`);assert.match(h.document.querySelector('main').textContent,/Finish the guided practice/);
+ const {schoolLessons}=await import('../web/school-content.js');const l=schoolLessons[0];const h=await boot();h.go(`#/school/${l.id}/quiz`);assert.match(h.document.querySelector('main').textContent,/Finish the guided practice/);
  h.go(`#/school/${l.id}/study`);for(let i=0;i<l.sections.length;i++)h.click(`[data-action="school-read"][data-index="${i}"]`);
  for(const phase of ['practice','quiz']){h.go(`#/school/${l.id}/${phase}`);for(const q of l.questions.filter(q=>q.phase===phase)){if(q.type==='mc'){const el=h.document.querySelector(`input[name="school-answer"][value="${q.answer}"]`);el.checked=true;el.setAttribute('checked','');}else h.fill('#school-answer-input',q.answers[0]);h.document.querySelector('#school-answer-form').dispatchEvent(new h.Event('submit',{bubbles:true,cancelable:true}));assert.ok(h.document.querySelector('.feedback.success'));h.click('[data-action="school-next"]');}assert.ok(h.document.querySelector('.result-score'));}
  assert.equal(h.state().school.completed.length,1);h.go(`#/school/${l.id}/write`);h.fill('#school-draft','A clear claim supported by an example and thoughtful reasoning.');assert.match(h.document.querySelector('#school-word-count').textContent,/10 words/);
@@ -72,13 +72,13 @@ test('classroom UI gates quiz, teaches, quizzes, saves writing and resumes witho
  const reopened=await boot(h.storage.raw,`#/school/${l.id}/write`);assert.match(reopened.document.querySelector('#school-draft').textContent,/clear claim/);assert.equal(reopened.state().school.completed.length,1);
 });
 test('classroom source and teacher pages render safely with user text and rubric controls',async()=>{
- const {freshState}=await import('../dist/engine.js');const {schoolLessons}=await import('../dist/school-content.js');const {openTeacherSubmission,COURSE_VERSION}=await import('../dist/school-engine.js');const state=freshState(),l=schoolLessons[0];openTeacherSubmission(state.school,{kind:'english12-submission',version:1,course:COURSE_VERSION,id:'test-student-123',student:'<img src=x onerror=alert(1)>',created:new Date().toISOString(),responses:[{lesson:l.id,answer:'<script>bad()</script> A response.'}]});
+ const {freshState}=await import('../web/engine.js');const {schoolLessons}=await import('../web/school-content.js');const {openTeacherSubmission,COURSE_VERSION}=await import('../web/school-engine.js');const state=freshState(),l=schoolLessons[0];openTeacherSubmission(state.school,{kind:'english12-submission',version:1,course:COURSE_VERSION,id:'test-student-123',student:'<img src=x onerror=alert(1)>',created:new Date().toISOString(),responses:[{lesson:l.id,answer:'<script>bad()</script> A response.'}]});
  const h=await boot(JSON.stringify(state),'#/teacher');assert.equal(h.document.querySelectorAll('select[data-school-mark]').length,4);assert.equal(h.document.querySelectorAll('.student-answer script').length,0);assert.match(h.document.querySelector('.student-answer').textContent,/<script>/);h.fill('#school-teacher-name','Teacher');h.fill('[data-school-comment]','Add one precise supporting detail.');assert.equal(h.state().school.teacher.marks[l.id].comment,'Add one precise supporting detail.');
  h.go('#/school/sources');assert.equal(h.document.querySelectorAll('.source-list>li').length,25);h.go('#/school');assert.equal(h.document.querySelectorAll('.school-group').length,6);h.go('#/school/constructor');assert.match(h.document.querySelector('h1').textContent,/back to learning/);
 });
 
 test('student download, teacher import, rubric events, feedback export and student import round-trip',async()=>{
- const {freshState}=await import('../dist/engine.js');const {schoolLessons}=await import('../dist/school-content.js');const {readSection,schoolSession,checkSchoolAnswer,nextSchoolQuestion}=await import('../dist/school-engine.js');
+ const {freshState}=await import('../web/engine.js');const {schoolLessons}=await import('../web/school-content.js');const {readSection,schoolSession,checkSchoolAnswer,nextSchoolQuestion}=await import('../web/school-engine.js');
  const state=freshState(),l=schoolLessons[0],s=state.school;for(let i=0;i<l.sections.length;i++)readSection(s,l.id,i);for(const phase of ['practice','quiz']){const a=schoolSession(s,l.id,phase);while(!a.finished){const q=l.questions.find(q=>q.id===a.ids[a.index]);checkSchoolAnswer(s,a,q.type==='mc'?q.answer:q.answers[0]);nextSchoolQuestion(s,a);}}s.name='Student';s.drafts[l.id]='The hero protects others, but his final victory has a cost.';
  const original=URL.createObjectURL,oldRevoke=URL.revokeObjectURL;let downloaded;URL.createObjectURL=blob=>{downloaded=blob;return 'blob:test';};URL.revokeObjectURL=()=>{};
  const importFile=async(h,selector,raw)=>{const input=h.document.querySelector(selector);Object.defineProperty(input,'files',{value:[{size:raw.length,text:async()=>raw}],configurable:true});h.change(input);await new Promise(resolve=>setTimeout(resolve,0));};

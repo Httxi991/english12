@@ -1,3 +1,13 @@
+# 2.0.0 — 2026-10-17
+
+- Add name-only student account creation with generated private login codes and a separate teacher account.
+- Add server-enforced roles, salted credential hashing, hashed expiring sessions, first-use teacher password change and student code replacement.
+- Store learning progress, quiz history and written work in D1 with local offline recovery and revision-conflict handling.
+- Replace file-based hand-in in the connected UI with direct submission, live student roster and published teacher feedback.
+- Preserve existing GitHub browser progress through explicit account migration.
+- Migrate editable browser source from dist/ to web/; add a Vinext Worker backend while keeping GitHub Pages as the frontend URL.
+- Verify 36 learning, account-service and DOM/event tests.
+
 # 1.1.0 — 2026-10-17
 
 - Adapt 25 classroom files into 18 study-first lessons across six topic groups, with 108 explained objective questions and 18 teacher-marked written tasks.

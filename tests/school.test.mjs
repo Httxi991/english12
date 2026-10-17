@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {schoolLessons,schoolQuestions,schoolQuestionById,schoolSources} from '../dist/school-content.js';
-import {freshState,validateState,xp} from '../dist/engine.js';
-import {freshSchool,validateSchool,studied,readSection,schoolSession,checkSchoolAnswer,nextSchoolQuestion,schoolCorrect,schoolScore,createSubmission,openTeacherSubmission,createGrades,acceptGrades,validateSubmission,schoolRecommendation} from '../dist/school-engine.js';
+import {schoolLessons,schoolQuestions,schoolQuestionById,schoolSources} from '../web/school-content.js';
+import {freshState,validateState,xp} from '../web/engine.js';
+import {freshSchool,validateSchool,studied,readSection,schoolSession,checkSchoolAnswer,nextSchoolQuestion,schoolCorrect,schoolScore,createSubmission,openTeacherSubmission,createGrades,acceptGrades,validateSubmission,schoolRecommendation} from '../web/school-engine.js';
 const answer=q=>q.type==='mc'?q.answer:q.answers[0];
 function study(s,l){for(let i=0;i<l.sections.length;i++)assert.equal(readSection(s,l.id,i),true);}
 function finish(s,l,phase,wrong=false){const a=schoolSession(s,l.id,phase);while(!a.finished){const q=schoolQuestionById[a.ids[a.index]];checkSchoolAnswer(s,a,wrong?(q.type==='mc'?(q.answer+1)%q.options.length:'incorrect'):answer(q));nextSchoolQuestion(s,a);}return a;}
