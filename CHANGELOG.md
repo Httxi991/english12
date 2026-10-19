@@ -1,3 +1,9 @@
+# 2.0.1 — 2026-10-19
+
+- Make student and teacher sign-in, account controls, migration, submission guidance and classroom instructions English.
+- Use left-to-right layout for English account screens; keep Arabic lesson help optional and off by default.
+- Preserve existing accounts, saved work and teacher feedback.
+
 # 2.0.0 — 2026-10-17
 
 - Add name-only student account creation with generated private login codes and a separate teacher account.
